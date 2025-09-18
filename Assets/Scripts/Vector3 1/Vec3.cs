@@ -253,11 +253,7 @@ namespace CustomMath
         /// <returns></returns>
         public static float Distance(Vec3 a, Vec3 b)
         {
-            float x = a.x - b.x;
-            float y = a.y - b.y;
-            float z = a.z - b.z;
-
-            return Magnitude(x, y, z);
+            return (a - b).magnitude;
         }
 
         /// <summary>

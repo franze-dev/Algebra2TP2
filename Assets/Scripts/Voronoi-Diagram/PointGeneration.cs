@@ -13,17 +13,25 @@ public class PointGeneration : MonoBehaviour
 
     private List<Vec3> _points;
 
-    private Vec3 _max => (Vec3)_maxT.position;
-    private Vec3 _min => (Vec3)_minT.position;
+    private Vec3 _max => _maxT.position;
+    private Vec3 _min => _minT.position;
 
     private void Start()
     {
         _points = new List<Vec3>();
 
         GeneratePoints();
-
         SortPoints();
 
+        CreateBisectors();
+    }
+
+    private void CreateBisectors()
+    {
+        foreach (var point in _points)
+        {
+
+        }
     }
 
     /// <summary>
@@ -33,10 +41,15 @@ public class PointGeneration : MonoBehaviour
     {
         _points.Sort((a, b) =>
         {
-            float distA = (a - _max).sqrMagnitude;
-            float distB = (b - _max).sqrMagnitude;
+            float distA = Vec3.Distance(a, _max);
+            float distB = Vec3.Distance(b, _max);
             return distA.CompareTo(distB);
         });
+
+        foreach (var point in _points)
+        {
+            Debug.Log(point);
+        }
     }
 
     private void GeneratePoints()
