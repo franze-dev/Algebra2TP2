@@ -19,6 +19,13 @@ namespace CustomMath
         private void Awake()
         {
             localRotation = CustomQuaternion.Euler(eulerRotation);
+
+            if (parent == null && transform.parent != null)
+            {
+                var parentTransform = transform.parent.GetComponent<CustomTransform>();
+                if (parentTransform != null)
+                    SetParent(parentTransform);
+            }
         }
 
         private void OnValidate()
