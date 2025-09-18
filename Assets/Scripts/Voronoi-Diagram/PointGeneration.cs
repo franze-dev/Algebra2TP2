@@ -4,21 +4,21 @@ using System.Collections.Generic;
 
 public class PointGeneration : MonoBehaviour
 {
-    [SerializeField] private GameObject pointPrefab;
+    [SerializeField] private GameObject _pointPrefab;
 
-    [SerializeField] private int N = 10;
+    [SerializeField] private int _pointsAmount = 10;
 
-    [SerializeField] private CustomTransform maxT;
-    [SerializeField] private CustomTransform minT;
+    [SerializeField] private CustomTransform _maxT;
+    [SerializeField] private CustomTransform _minT;
 
-    private List<Vec3> points;
+    private List<Vec3> _points;
 
-    private Vec3 max => (Vec3)maxT.position;
-    private Vec3 min => (Vec3)minT.position;
+    private Vec3 _max => (Vec3)_maxT.position;
+    private Vec3 _min => (Vec3)_minT.position;
 
     private void Start()
     {
-        points = new List<Vec3>();
+        _points = new List<Vec3>();
 
         GeneratePoints();
 
@@ -31,25 +31,17 @@ public class PointGeneration : MonoBehaviour
     /// </summary>
     private void SortPoints()
     {
-        foreach (var point in points)
-            Debug.Log(point.x + " " + point.y + " " + point.z);
-
-        points.Sort((a, b) =>
+        _points.Sort((a, b) =>
         {
-            float distA = (a - max).sqrMagnitude;
-            float distB = (b - max).sqrMagnitude;
+            float distA = (a - _max).sqrMagnitude;
+            float distB = (b - _max).sqrMagnitude;
             return distA.CompareTo(distB);
         });
-
-        Debug.Log("Sorted Points:");
-
-        foreach (var point in points)
-            Debug.Log(point.x + " " + point.y + " " + point.z);
     }
 
     private void GeneratePoints()
     {
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < _pointsAmount; i++)
         {
             bool pointIsValid = false;
 
@@ -57,19 +49,22 @@ public class PointGeneration : MonoBehaviour
 
             do
             {
-                position = new Vec3(Random.Range(min.x, max.x),
-                                    Random.Range(min.y, max.y),
-                                    Random.Range(min.z, max.z));
+                position = new Vec3(Random.Range(_min.x, _max.x),
+                                    Random.Range(_min.y, _max.y),
+                                    Random.Range(_min.z, _max.z));
 
-                if (points.Contains(position))
+                if (_points.Contains(position))
                     pointIsValid = false;
                 else
                     pointIsValid = true;
 
             } while (!pointIsValid);
 
-            Instantiate(pointPrefab, (Vector3)position, (Quaternion)CustomQuaternion.Identity);
-            points.Add(position);
+            GameObject pointGO = Instantiate(_pointPrefab, (Vector3)position, (Quaternion)CustomQuaternion.Identity, transform.parent);
+
+            pointGO.GetComponent<CustomTransform>().localScale = new Vec3(2, 2, 2);
+
+            _points.Add(position);
         }
 
     }
