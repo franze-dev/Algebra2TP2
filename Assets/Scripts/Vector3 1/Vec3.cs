@@ -351,6 +351,11 @@ namespace CustomMath
                 z = 0f;
             }
         }
+
+        public static Vec3 Normalize(Vec3 vec3)
+        {
+            return vec3.normalized;
+        }
         #endregion
 
         #region Internals
