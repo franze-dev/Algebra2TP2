@@ -23,12 +23,9 @@ public class CustomTDraw : MonoBehaviour
         {
             Gizmos.color = color;
 
-            Quaternion rotation = new(customTransform.rotation.x, 
-                                      customTransform.rotation.y, 
-                                      customTransform.rotation.z, 
-                                      customTransform.rotation.w);
-
-            Gizmos.DrawMesh(mesh, (Vector3)customTransform.position, rotation, (Vector3)customTransform.lossyScale);
+            Gizmos.DrawMesh(mesh, (Vector3)customTransform.position, 
+                                  (Quaternion)customTransform.rotation, 
+                                  (Vector3)customTransform.lossyScale);
         }
         else
             Debug.Log("Mesh not assigned in CustomTDraw component.");

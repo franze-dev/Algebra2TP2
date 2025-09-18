@@ -4,8 +4,11 @@ using CustomMath;
 
 public class BoundsDraw : MonoBehaviour
 {
-    [SerializeField] Vec3 max;
-    [SerializeField] Vec3 min;
+    [SerializeField] CustomTransform maxT;
+    [SerializeField] CustomTransform minT;
+
+    private Vec3 max => maxT.position;
+    private Vec3 min => minT.position;
 
     private void OnDrawGizmos()
     {

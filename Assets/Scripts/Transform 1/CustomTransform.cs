@@ -26,6 +26,9 @@ namespace CustomMath
                 if (parentTransform != null)
                     SetParent(parentTransform);
             }
+
+            if (transform.position != Vec3.zero)
+                localPosition = new(transform.position);
         }
 
         private void OnValidate()

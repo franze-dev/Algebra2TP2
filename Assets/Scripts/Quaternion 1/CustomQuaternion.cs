@@ -316,6 +316,11 @@ namespace CustomMath
             return !(lhs == rhs);
         }
 
+        public static implicit operator Quaternion(CustomQuaternion a)
+        {
+            return new Quaternion(a.x, a.y, a.z, a.w);
+        }
+
         /// <summary>
         /// If it returns 1 the quaternions are equal, 
         /// if it returns -1 they are opposite.
