@@ -8,9 +8,15 @@ public class VoronoiDiagram
     private Bounds _bounds;
     private List<CustomPlane> _boundsPlanes;
 
+    public List<VoronoiRegion> Regions => _regions;
+
+    public List<CustomPlane> BoundsPlanes => _boundsPlanes;
+
     public VoronoiDiagram(List<Vec3> sites, Vec3 minPoint, Vec3 maxPoint)
     {
-        _bounds = new Bounds(minPoint, maxPoint);
+        _bounds = new Bounds((minPoint + maxPoint) / 2, maxPoint - minPoint);
+
+        _regions = new List<VoronoiRegion>();
 
         foreach (var site in sites)
             AddSite(site);
@@ -59,9 +65,6 @@ public class VoronoiDiagram
 
     private void AddSite(Vec3 site)
     {
-        if (site == null)
-            return;
-
         if (!_bounds.Contains(site) && site != _bounds.max && site != _bounds.min)
             return;
 

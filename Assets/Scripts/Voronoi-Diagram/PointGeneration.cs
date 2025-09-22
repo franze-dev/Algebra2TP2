@@ -1,6 +1,5 @@
 using CustomMath;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PointGeneration : MonoBehaviour
@@ -11,6 +10,8 @@ public class PointGeneration : MonoBehaviour
 
     [SerializeField] private CustomTransform _maxT;
     [SerializeField] private CustomTransform _minT;
+
+    private VoronoiDiagram _diagram;
 
     private List<Vec3> _points;
 
@@ -24,11 +25,18 @@ public class PointGeneration : MonoBehaviour
         GeneratePoints();
         SortPoints();
 
-        CreateBisectors();
+        _diagram = new(_points, _min, _max);
     }
 
-    private void CreateBisectors()
+    private void OnDrawGizmos()
     {
+        Gizmos.color = Color.yellow;
+
+        if (_diagram != null)
+            foreach (var plane in _diagram.BoundsPlanes)
+            {
+                Gizmos.DrawRay(-plane.normal * plane.distance, plane.normal * 10);
+            }
     }
 
     /// <summary>
