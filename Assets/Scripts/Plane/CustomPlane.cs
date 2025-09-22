@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace CustomMath
 {
-    public class CustomPlane : MonoBehaviour
+    public class CustomPlane
     {
         private Vec3 _normal;
 

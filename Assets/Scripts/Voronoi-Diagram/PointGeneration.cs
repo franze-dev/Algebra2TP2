@@ -1,6 +1,7 @@
-using UnityEngine;
 using CustomMath;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 
 public class PointGeneration : MonoBehaviour
 {
@@ -28,10 +29,6 @@ public class PointGeneration : MonoBehaviour
 
     private void CreateBisectors()
     {
-        foreach (var point in _points)
-        {
-
-        }
     }
 
     /// <summary>
@@ -45,11 +42,6 @@ public class PointGeneration : MonoBehaviour
             float distB = Vec3.Distance(b, _max);
             return distA.CompareTo(distB);
         });
-
-        foreach (var point in _points)
-        {
-            Debug.Log(point);
-        }
     }
 
     private void GeneratePoints()
@@ -80,5 +72,7 @@ public class PointGeneration : MonoBehaviour
             _points.Add(position);
         }
 
+        _points.Add(_min);
+        _points.Add(_max);
     }
 }
