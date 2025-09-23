@@ -60,7 +60,12 @@ public class VoronoiDiagram
 
         var normal = (site1 - site2).normalized;
 
-        return new(normal, mid);
+        var plane = new CustomPlane(normal, mid);
+
+        if (!plane.GetSide(site1))
+            plane = plane.flipped;
+
+        return plane;
     }
 
     private void AddSite(Vec3 site)

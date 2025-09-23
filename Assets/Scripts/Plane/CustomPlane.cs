@@ -36,7 +36,7 @@ namespace CustomMath
         {
             get
             {
-                return new CustomPlane(-_normal, 0f - _distance);
+                return new CustomPlane(-_normal, -_distance);
             }
         }
 

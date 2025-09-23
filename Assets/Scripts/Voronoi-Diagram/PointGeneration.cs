@@ -6,7 +6,7 @@ public class PointGeneration : MonoBehaviour
 {
     [SerializeField] private GameObject _pointPrefab;
 
-    [SerializeField] private int _pointsAmount = 10;
+    [SerializeField] private int _pointsAmount = 1;
 
     [SerializeField] private CustomTransform _maxT;
     [SerializeField] private CustomTransform _minT;
@@ -26,17 +26,59 @@ public class PointGeneration : MonoBehaviour
         SortPoints();
 
         _diagram = new(_points, _min, _max);
+
+        DebugRegions();
+    }
+
+    private void DebugRegions()
+    {
+        foreach (var region in _diagram.Regions)
+        {
+            Debug.Log("REGION: " + region.ToString());
+            foreach (var face in region.Faces)
+            {
+                Debug.Log("Face vertices: " + face.vertices.Count);
+
+                foreach (var v in face.vertices)
+                    Debug.Log(v);
+            }
+        }
     }
 
     private void OnDrawGizmos()
     {
+        if (_diagram == null)
+            return;
+
         Gizmos.color = Color.yellow;
 
-        if (_diagram != null)
-            foreach (var plane in _diagram.BoundsPlanes)
+        //Bounding box normals
+        foreach (var plane in _diagram.BoundsPlanes)
+        {
+            Gizmos.DrawRay(plane.normal * plane.distance, plane.normal * 10);
+        }
+
+        //Diagram debug
+
+        Gizmos.color = Color.red;
+
+        foreach (var region in _diagram.Regions)
+        {
+            foreach (var face in region.Faces)
             {
-                Gizmos.DrawRay(-plane.normal * plane.distance, plane.normal * 10);
+                for (int i = 0; i < face.vertices.Count; i++)
+                {
+                    Gizmos.DrawSphere(face.vertices[i], 0.2f);
+
+                    Vec3 a = face.vertices[i];
+                    Vec3 b = face.vertices[(i + 1) % face.vertices.Count];
+
+                    Gizmos.DrawLine(a, b);
+                }
             }
+        }
+
+
     }
 
     /// <summary>
