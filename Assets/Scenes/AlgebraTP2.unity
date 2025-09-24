@@ -658,8 +658,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea1cb0874908c13499ef239667810665, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pointPrefab: {fileID: 8300513733100098174, guid: 29825675598a6e44a90ac0553efe618b, type: 3}
-  _pointsAmount: 10
+  _pointsAmount: 1
   _maxT: {fileID: 1437673154}
   _minT: {fileID: 629385300}
 --- !u!1001 &2068448060

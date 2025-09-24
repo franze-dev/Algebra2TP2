@@ -1,12 +1,12 @@
 using CustomMath;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class PointGeneration : MonoBehaviour
 {
-    [SerializeField] private GameObject _pointPrefab;
-
-    [SerializeField] private int _pointsAmount = 1;
+    [SerializeField] private int _pointsAmount = 0;
 
     [SerializeField] private CustomTransform _maxT;
     [SerializeField] private CustomTransform _minT;
@@ -14,12 +14,15 @@ public class PointGeneration : MonoBehaviour
     private VoronoiDiagram _diagram;
 
     private List<Vec3> _points;
+    private List<CustomPlane> _planesToDraw;
 
     private Vec3 _max => _maxT.position;
     private Vec3 _min => _minT.position;
 
     private void Start()
     {
+        _planesToDraw = new();
+
         _points = new List<Vec3>();
 
         GeneratePoints();
@@ -58,27 +61,69 @@ public class PointGeneration : MonoBehaviour
             Gizmos.DrawRay(plane.normal * plane.distance, plane.normal * 10);
         }
 
-        //Diagram debug
 
-        Gizmos.color = Color.red;
+        //Diagram debug
+        //Gizmos.color = Color.red;
+
+        //foreach (var region in _diagram.Regions)
+        //{
+        //    for (int i = 0; i < region.Vertices.Count; i++)
+        //    {
+        //        var v = region.Vertices[i];
+        //        var vN = region.Vertices[(i + 1) % region.Vertices.Count];
+
+        //        Gizmos.DrawSphere(v, 0.5f);
+
+        //        Gizmos.DrawLine(v, vN);
+        //    }
+        //}
+
+
+        //_planesToDraw.Clear();
 
         foreach (var region in _diagram.Regions)
         {
-            foreach (var face in region.Faces)
-            {
-                for (int i = 0; i < face.vertices.Count; i++)
-                {
-                    Gizmos.DrawSphere(face.vertices[i], 0.2f);
+            Gizmos.color = Color.blue;
+            _planesToDraw.AddRange(region.Borders);
 
-                    Vec3 a = face.vertices[i];
-                    Vec3 b = face.vertices[(i + 1) % face.vertices.Count];
 
-                    Gizmos.DrawLine(a, b);
-                }
-            }
+            Gizmos.color = region.Color;
+            Gizmos.DrawSphere(region.Site, 2f);
+
+            foreach (var border in region.Borders)
+                DebugPlane(border);
         }
 
+        //_planesToDraw = _planesToDraw.Distinct().ToList();
 
+        //foreach (var plane in _planesToDraw)
+        //    DebugPlane(plane);
+    }
+
+    private void DebugPlane(CustomPlane plane)
+    {
+        Vec3 point = plane.normal * plane.distance;
+        Vec3 scaledNormal = plane.normal * 3f;
+        float size = 100f;
+
+        Vector3 axis1 = Vector3.Cross(scaledNormal, Vector3.up);
+        if (axis1.sqrMagnitude < 0.001f)
+            axis1 = Vector3.Cross(scaledNormal, Vector3.right);
+
+        axis1.Normalize();
+        Vector3 axis2 = Vector3.Cross(scaledNormal, axis1).normalized;
+
+        Vector3 corner0 = point + (axis1 + axis2) * size * 0.5f;
+        Vector3 corner1 = point + (axis1 - axis2) * size * 0.5f;
+        Vector3 corner2 = point + (-axis1 - axis2) * size * 0.5f;
+        Vector3 corner3 = point + (-axis1 + axis2) * size * 0.5f;
+
+        Gizmos.DrawLine(corner0, corner1);
+        Gizmos.DrawLine(corner1, corner2);
+        Gizmos.DrawLine(corner2, corner3);
+        Gizmos.DrawLine(corner3, corner0);
+
+        Gizmos.DrawLine(point, point + scaledNormal);
     }
 
     /// <summary>
@@ -114,10 +159,6 @@ public class PointGeneration : MonoBehaviour
                     pointIsValid = true;
 
             } while (!pointIsValid);
-
-            GameObject pointGO = Instantiate(_pointPrefab, (Vector3)position, (Quaternion)CustomQuaternion.Identity, transform.parent);
-
-            pointGO.GetComponent<CustomTransform>().localScale = new Vec3(2, 2, 2);
 
             _points.Add(position);
         }

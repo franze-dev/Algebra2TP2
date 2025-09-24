@@ -13,6 +13,30 @@ public class Face
     }
 }
 
+public class Line
+{
+    public Vec3 point;
+    public Vec3 dir;
+
+    public Line(Vec3 point, Vec3 dir)
+    {
+        this.point = point;
+        this.dir = dir;
+    }
+}
+
+public class Segment
+{
+    public Vec3 start;
+    public Vec3 end;
+
+    public Segment(Vec3 start, Vec3 end)
+    {
+        this.start = start;
+        this.end = end;
+    }
+}
+
 public class VoronoiRegion
 {
     private Vec3 _site;
@@ -26,8 +50,16 @@ public class VoronoiRegion
 
     public List<Face> Faces => _faces;
 
+    public List<Vec3> Vertices => _vertices;
+
+    public List<CustomPlane> Borders => _borders;
+
+    public Color Color;
+
     public VoronoiRegion(Bounds bounds, Vec3 site)
     {
+        Color = new(Random.value, Random.value, Random.value);
+
         _borders = new List<CustomPlane>();
 
         _bounds = bounds;
@@ -89,16 +121,17 @@ public class VoronoiRegion
 
     private void InitVertices()
     {
-        _vertices = new List<Vec3>();
-
-        _vertices.Add(new(_bounds.min));
-        _vertices.Add(new(_bounds.max.x, _bounds.min.y, _bounds.min.z));
-        _vertices.Add(new(_bounds.min.x, _bounds.max.y, _bounds.min.z));
-        _vertices.Add(new(_bounds.max.x, _bounds.max.y, _bounds.min.z));
-        _vertices.Add(new(_bounds.min.x, _bounds.min.y, _bounds.max.z));
-        _vertices.Add(new(_bounds.max.x, _bounds.min.y, _bounds.max.z));
-        _vertices.Add(new(_bounds.min.x, _bounds.max.y, _bounds.max.z));
-        _vertices.Add(new(_bounds.max));
+        _vertices = new List<Vec3>
+        {
+            new(_bounds.min),
+            new(_bounds.max.x, _bounds.min.y, _bounds.min.z),
+            new(_bounds.min.x, _bounds.max.y, _bounds.min.z),
+            new(_bounds.max.x, _bounds.max.y, _bounds.min.z),
+            new(_bounds.min.x, _bounds.min.y, _bounds.max.z),
+            new(_bounds.max.x, _bounds.min.y, _bounds.max.z),
+            new(_bounds.min.x, _bounds.max.y, _bounds.max.z),
+            new(_bounds.max)
+        };
 
     }
 
@@ -119,23 +152,109 @@ public class VoronoiRegion
 
     public bool ShouldAdd(CustomPlane plane)
     {
-        bool anyIn = false;
-        bool anyOut = false;
-
-        foreach (var v in _vertices)
+        if (Intersect(plane, out var myBorder))
         {
-            if (plane.GetSide(v))
-                anyIn = true;
-            else
-                anyOut = true;
+            //Check if they intersect in the bounds
+            if (myBorder != null)
+            {
+                var intersect = GetIntersection(plane, myBorder);
+                if (intersect != null)
+                {
+                    _vertices.Add(intersect.start);
+                    _vertices.Add(intersect.end);
+                    return true;
+                }
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
 
-            if (anyIn && anyOut)
-                return true;
+    /// <summary>
+    /// https://discussions.unity.com/t/how-to-find-line-of-intersecting-planes/459131/2
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    private Segment GetIntersection(CustomPlane a, CustomPlane b)
+    {
+        //Gets the line of intersection between a and b, checks if it intersects with the other borders twice.
+        //If that's the case, a segment is made with those two intersections, and that's what's returned.
+
+        Line line;
+
+        var linePoint = Vec3.zero;
+        var lineDir = Vec3.zero;
+
+        lineDir = Vec3.Cross(a.normal, b.normal);
+
+        var pointDir = Vec3.Cross(b.normal, lineDir);
+
+        float numerator = Vec3.Dot(a.normal, pointDir);
+
+        if (Mathf.Abs(numerator) > Mathf.Epsilon)
+        {
+            Vec3 dist = (a.normal * a.distance) - (b.normal * b.distance);
+            float t = Vec3.Dot(a.normal, dist) / numerator;
+
+            linePoint = (b.normal * b.distance) + t * pointDir;
+
+            line = new(linePoint, lineDir);
+        }
+        else
+            return null;
+
+        //check if that linepoint is in the main box
+
+        if (!_bounds.Contains(linePoint))
+            return null;
+
+        // Make the segment
+        var boundsExtents = new Vec3(_bounds.extents);
+        var boundsSize = new Vec3(_bounds.size);
+
+        // Shoot a ray from under the bounds to detect colision
+        Ray ray = new();
+
+        var testDir = line.dir;
+
+        if (line.dir.x < 0 ||
+            line.dir.y < 0 ||
+            line.dir.z < 0)
+            testDir *= -1;
+
+        ray.origin = line.point - (-testDir * boundsExtents);
+        ray.direction = line.dir * boundsSize;
+
+        float enter = 0f;
+
+        List<Vec3> points = new List<Vec3>();
+
+        foreach (var border in _borders)
+        {
+            if (border == a || border == b)
+                continue;
+
+            if (border.Raycast(ray, out enter))
+            {
+                Vec3 intersect = new(ray.GetPoint(enter));
+
+                points.Add(intersect);
+            }
+
+            if (points.Count == 2)
+                break;
         }
 
-        return false;
+        if (points.Count == 0)
+        {
+            Debug.LogWarning("Could not make segment even after making the line.");
+            return null;
+        }
 
-        //return Intersect(plane);
+        return new(points[0], points[1]);
+
     }
 
     /// <summary>
@@ -143,16 +262,20 @@ public class VoronoiRegion
     /// </summary>
     /// <param name="plane"></param>
     /// <returns></returns>
-    private bool Intersect(CustomPlane plane)
+    private bool Intersect(CustomPlane plane, out CustomPlane myBorder)
     {
         if (!plane.GetSide(_site))
         {
+            myBorder = null;
             Debug.LogWarning("Tried to add a plane to the region of " + _site + " but the plane is not facing it.");
             return false;
         }
 
         if (_borders.Count == 0)
+        {
+            myBorder = null;
             return true;
+        }
 
         foreach (var border in _borders)
         {
@@ -165,9 +288,11 @@ public class VoronoiRegion
                 continue;
 
             //Not parallel, they intersect.
+            myBorder = border;
             return true;
         }
 
+        myBorder = null;
         return false;
     }
 
@@ -176,7 +301,7 @@ public class VoronoiRegion
         if (ShouldAdd(border))
         {
             _borders.Add(border);
-            ClipRegion(border);
+            //ClipRegion(border);
         }
         else
             Debug.LogWarning("Cannot add border " + border + ". It does not intersect with the current region");
@@ -186,168 +311,6 @@ public class VoronoiRegion
     {
         foreach (var border in borders)
             AddBorder(border);
-    }
-
-    private List<Vec3> SortPoly(List<Vec3> poly, Vec3 normal)
-    {
-        Vec3 centroid = Vec3.zero;
-
-        foreach (var point in poly)
-            centroid += point;
-
-        centroid /= poly.Count;
-
-        Vec3 aX = Vec3.Cross(normal, Vec3.up);
-        if (aX.sqrMagnitude < Mathf.Epsilon)
-            aX = Vec3.Cross(normal, Vec3.right);
-
-        aX.Normalize();
-
-        Vec3 aY = Vec3.Cross(normal, Vec3.Cross(normal, aX));
-
-        poly.Sort((a, b) =>
-        {
-            Vec3 dA = a - centroid;
-            Vec3 dB = b - centroid;
-            float angleA = Mathf.Atan2(Vec3.Dot(dA, aY), Vec3.Dot(dA, aX));
-            float angleB = Mathf.Atan2(Vec3.Dot(dB, aY), Vec3.Dot(dB, aX));
-
-            return angleA.CompareTo(angleB);
-        });
-
-
-        return poly;
-    }
-
-    private void ClipRegion(CustomPlane plane)
-    {
-        var newFaces = new List<Face>();
-        var cap = new List<Vec3>();
-
-        foreach (var face in _faces)
-        {
-            var clippedVerts = CollectIntersections(face.vertices, plane);
-
-            if (clippedVerts != null && clippedVerts.Count >= 3)
-            {
-                var normal = Vec3.Cross(clippedVerts[1] - clippedVerts[0], clippedVerts[2] - clippedVerts[0]).normalized;
-                var sorted = SortPoly(clippedVerts, normal);
-
-                newFaces.Add(new(sorted));
-            }
-
-            var planeIntersects = GetPlaneIntersect(face.vertices, plane);
-            if (planeIntersects != null && planeIntersects.Count > 0)
-                cap.AddRange(planeIntersects);
-        }
-
-        _faces = newFaces;
-
-        if (cap.Count > 0)
-        {
-            var distinct = cap.Distinct().ToList();
-
-            for (var i = 0; i < distinct.Count; i++)
-            {
-                var p = distinct[i];
-                float signedDist = Vec3.Dot(plane.normal, p) - plane.distance;
-
-                distinct[i] = p - plane.normal * signedDist;
-            }
-
-            var sorted = SortPoly(distinct, plane.normal);
-
-            _faces.Add(new(sorted));
-
-            _vertices = new(sorted);
-        }
-    }
-
-    private List<Vec3> CollectIntersections(List<Vec3> vertices, CustomPlane plane)
-    {
-        var res = new List<Vec3>();
-
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            var current = vertices[i];
-            var next = vertices[(i + 1) % vertices.Count];
-
-            bool currentInside = plane.GetSide(current);
-            bool nextInside = plane.GetSide(next);
-
-            if (currentInside)
-                res.Add(current);
-
-            if (currentInside != nextInside)
-            {
-                var intersection = IntersectEdgePlane(current, next, plane);
-                res.Add(intersection);
-            }
-        }
-
-        return res;
-    }
-
-    private List<Vec3> GetPlaneIntersect(List<Vec3> vertices, CustomPlane plane)
-    {
-        var res = new List<Vec3>();
-
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            var current = vertices[i];
-            var next = vertices[(i + 1) % vertices.Count];
-
-            bool currentOnPlane = Mathf.Abs(Vec3.Dot(plane.normal, current) - plane.distance) <= Mathf.Epsilon;
-
-            if (currentOnPlane)
-                res.Add(current);
-
-            bool currentInside = plane.GetSide(current);
-            bool nextInside = plane.GetSide(next);
-
-            if (currentInside != nextInside)
-            {
-                var intersection = IntersectEdgePlane(current, next, plane);
-                res.Add(intersection);
-            }
-        }
-
-        return res;
-    }
-
-    private Face ClipFace(Face face, CustomPlane plane)
-    {
-        var vertices = face.vertices;
-
-        var res = CollectIntersections(vertices, plane);
-
-        if (res.Count >= 3)
-        {
-            res = SortPoly(res, plane.normal);
-            return new Face(res);
-        }
-
-        return null;
-    }
-
-    private Vec3 IntersectEdgePlane(Vec3 a, Vec3 b, CustomPlane plane)
-    {
-        var dA = Vec3.Dot(plane.normal, a) - plane.distance;
-        var dB = Vec3.Dot(plane.normal, b) - plane.distance;
-
-        float denom = dA - dB;
-
-        float t;
-
-        if (Mathf.Abs(denom) < Mathf.Epsilon)
-            // almost parallel
-            t = 0.5f;
-        else
-            t = dA / denom;
-
-        t = Mathf.Clamp01(t);
-
-        return a + t * (b - a);
     }
 
     public bool IsPointInRegion(Vec3 point)
@@ -366,6 +329,13 @@ public class VoronoiRegion
 
         res += "Site: " + Site;
         res += " Borders amount: " + _borders.Count;
+
+        foreach (var border in _borders)
+        {
+            res += border.ToString();
+            res += border.normal.ToString();
+            res += border.distance.ToString();
+        }
 
         return res;
     }
