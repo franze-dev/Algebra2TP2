@@ -18,10 +18,10 @@ public class Line
     public Vec3 point;
     public Vec3 dir;
 
-    public Line(Vec3 point, Vec3 dir)
+    public Line(Vec3 point, Vec3 end)
     {
         this.point = point;
-        this.dir = dir;
+        this.dir = end;
     }
 }
 
@@ -152,21 +152,22 @@ public class VoronoiRegion
 
     public bool ShouldAdd(CustomPlane plane)
     {
-        if (Intersect(plane, out var myBorder))
+        CustomPlane myBorder;
+
+        foreach (var border in _borders)
         {
+            myBorder = border;
+            var doIntersect = Intersect(plane, out myBorder);
+
+            if (doIntersect == true && myBorder == null)
+                return true;
+
             //Check if they intersect in the bounds
             if (myBorder != null)
             {
                 var intersect = GetIntersection(plane, myBorder);
-                if (intersect != null)
-                {
-                    _vertices.Add(intersect.start);
-                    _vertices.Add(intersect.end);
-                    return true;
-                }
-                return false;
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -177,7 +178,7 @@ public class VoronoiRegion
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    private Segment GetIntersection(CustomPlane a, CustomPlane b)
+    private Line GetIntersection(CustomPlane a, CustomPlane b)
     {
         //Gets the line of intersection between a and b, checks if it intersects with the other borders twice.
         //If that's the case, a segment is made with those two intersections, and that's what's returned.
@@ -210,50 +211,7 @@ public class VoronoiRegion
         if (!_bounds.Contains(linePoint))
             return null;
 
-        // Make the segment
-        var boundsExtents = new Vec3(_bounds.extents);
-        var boundsSize = new Vec3(_bounds.size);
-
-        // Shoot a ray from under the bounds to detect colision
-        Ray ray = new();
-
-        var testDir = line.dir;
-
-        if (line.dir.x < 0 ||
-            line.dir.y < 0 ||
-            line.dir.z < 0)
-            testDir *= -1;
-
-        ray.origin = line.point - (-testDir * boundsExtents);
-        ray.direction = line.dir * boundsSize;
-
-        float enter = 0f;
-
-        List<Vec3> points = new List<Vec3>();
-
-        foreach (var border in _borders)
-        {
-            if (border == a || border == b)
-                continue;
-
-            if (border.Raycast(ray, out enter))
-            {
-                Vec3 intersect = new(ray.GetPoint(enter));
-
-                points.Add(intersect);
-            }
-
-            if (points.Count == 2)
-                break;
-        }
-
-        if (points.Count == 0)
-        {
-            Debug.LogWarning("Could not make segment even after making the line.");
-            return null;
-        }
-
-        return new(points[0], points[1]);
+        return line;
 
     }
 
@@ -298,13 +256,13 @@ public class VoronoiRegion
 
     public void AddBorder(CustomPlane border)
     {
-        if (ShouldAdd(border))
-        {
+        //if (ShouldAdd(border))
+        //{
             _borders.Add(border);
             //ClipRegion(border);
-        }
-        else
-            Debug.LogWarning("Cannot add border " + border + ". It does not intersect with the current region");
+        //}
+        //else
+        //    Debug.LogWarning("Cannot add border " + border + ". It does not intersect with the current region");
     }
 
     public void AddBorders(List<CustomPlane> borders)
@@ -329,13 +287,6 @@ public class VoronoiRegion
 
         res += "Site: " + Site;
         res += " Borders amount: " + _borders.Count;
-
-        foreach (var border in _borders)
-        {
-            res += border.ToString();
-            res += border.normal.ToString();
-            res += border.distance.ToString();
-        }
 
         return res;
     }
