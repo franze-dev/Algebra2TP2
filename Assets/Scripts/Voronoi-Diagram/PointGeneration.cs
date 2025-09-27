@@ -87,7 +87,7 @@ public class PointGeneration : MonoBehaviour
             Gizmos.color = Color.blue;
             _planesToDraw.AddRange(region.Borders);
 
-            Gizmos.color = region.Color;
+            Gizmos.color = Color.black;
             Gizmos.DrawSphere(region.Site, 2f);
 
         }
