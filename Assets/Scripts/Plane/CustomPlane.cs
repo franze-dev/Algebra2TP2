@@ -47,10 +47,6 @@ namespace CustomMath
         {
             return -distance * _normal;
         }
-        public Vec3 AnyPointOnPlane()
-        {
-            return -distance * _normal;
-        }
     }
 }
 
