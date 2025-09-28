@@ -1,9 +1,6 @@
 using CustomMath;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class PointGeneration : MonoBehaviour
 {
@@ -22,7 +19,7 @@ public class PointGeneration : MonoBehaviour
 
     [SerializeField] private Vec3 _testPoint;
     [SerializeField] private Vec3 _closestSite;
-    [SerializeField] private List<Vec3> _sites;
+    private List<Vec3> _sites;
 
     private void Start()
     {
@@ -35,8 +32,6 @@ public class PointGeneration : MonoBehaviour
         GeneratePoints();
 
         _diagram = new(_points, _min, _max);
-
-        DebugRegions();
 
         CheckRegions();
     }
@@ -74,12 +69,6 @@ public class PointGeneration : MonoBehaviour
     private void OnValidate()
     {
         CheckRegions();
-    }
-
-    private void DebugRegions()
-    {
-        foreach (var region in _diagram.Regions)
-            Debug.Log("REGION: " + region.ToString());
     }
 
     private void OnDrawGizmos()
