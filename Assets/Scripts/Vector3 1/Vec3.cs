@@ -261,6 +261,7 @@ namespace CustomMath
         /// Returns a positive value if the angle between the vectors is less than 90 degrees, 
         /// negative if it's greater than 90 degrees, 
         /// and zero if the vectors are orthogonal (perpendicular).
+        /// Returns 1 if the vectors are parallel.
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>

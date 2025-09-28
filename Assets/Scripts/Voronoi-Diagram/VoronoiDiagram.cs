@@ -39,13 +39,13 @@ public class VoronoiDiagram
             if (region == other)
                 continue;
 
-            var bisector = GetBisector(region.Site, other.Site);
+            var bisector = GetBisector(region.Site, other.Site, out var mid);
 
-            region.AddBorder(bisector);
+            region.AddBorder(bisector, mid);
         }
 
         foreach (var border in _boundsPlanes)
-            region.AddBorder(border);
+            region.AddBorder(border, border.normal * border.distance);
     }
 
     /// <summary>
@@ -54,9 +54,9 @@ public class VoronoiDiagram
     /// <param name="site1"></param>
     /// <param name="site2"></param>
     /// <exception cref="System.NotImplementedException"></exception>
-    private CustomPlane GetBisector(Vec3 site1, Vec3 site2)
+    private CustomPlane GetBisector(Vec3 site1, Vec3 site2, out Vec3 mid)
     {
-        var mid = (site1 + site2) * 0.5f;
+        mid = (site1 + site2) * 0.5f;
 
         var normal = (site1 - site2).normalized;
 

@@ -669,6 +669,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  _sites: []
 --- !u!1001 &2068448060
 PrefabInstance:
   m_ObjectHideFlags: 0
