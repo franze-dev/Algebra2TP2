@@ -22,7 +22,7 @@ public class PointGeneration : MonoBehaviour
 
     [SerializeField] private Vec3 _testPoint;
     [SerializeField] private Vec3 _closestSite;
-    [SerializeField] private List<Vec3> _sites;
+    private List<Vec3> _sites;
 
     private void Start()
     {
@@ -36,8 +36,6 @@ public class PointGeneration : MonoBehaviour
         SortPoints();
 
         _diagram = new(_points, _min, _max);
-
-        DebugRegions();
 
         CheckRegions();
     }
@@ -77,14 +75,6 @@ public class PointGeneration : MonoBehaviour
         CheckRegions();
     }
 
-    private void DebugRegions()
-    {
-        foreach (var region in _diagram.Regions)
-        {
-            Debug.Log("REGION: " + region.ToString());
-        }
-    }
-
     private void OnDrawGizmos()
     {
         if (_diagram == null)
@@ -112,39 +102,6 @@ public class PointGeneration : MonoBehaviour
         Gizmos.DrawSphere(_testPoint, 3f);
         Gizmos.color = Color.cyan;
         Gizmos.DrawSphere(_closestSite, 3f);
-    }
-
-    /// <summary>
-    /// https://discussions.unity.com/t/how-to-debug-drawing-plane/72450
-    /// </summary>
-    /// <param name="plane"></param>
-    private void DebugPlane(CustomPlane plane)
-    {
-        Vec3 v3;
-
-        var normal = plane.normal;
-        var position = plane.normal * plane.distance;
-
-        if (normal.normalized != Vec3.forward)
-            v3 = Vec3.Cross(normal, Vec3.forward).normalized * normal.magnitude;
-        else
-            v3 = Vec3.Cross(normal, Vec3.up).normalized * normal.magnitude; ;
-
-        var corner0 = position + v3;
-        var corner2 = position - v3;
-
-        var q = CustomQuaternion.AngleAxis(90.0f, normal);
-        v3 = q * v3;
-        var corner1 = position + v3;
-        var corner3 = position - v3;
-
-        Gizmos.DrawLine(corner0, corner2);
-        Gizmos.DrawLine(corner1, corner3);
-        Gizmos.DrawLine(corner0, corner1);
-        Gizmos.DrawLine(corner1, corner2);
-        Gizmos.DrawLine(corner2, corner3);
-        Gizmos.DrawLine(corner3, corner0);
-        Gizmos.DrawRay(position, normal);
     }
 
     /// <summary>

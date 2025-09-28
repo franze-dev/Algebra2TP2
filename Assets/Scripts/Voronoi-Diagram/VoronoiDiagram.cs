@@ -1,4 +1,5 @@
 using CustomMath;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -41,12 +42,16 @@ public class VoronoiDiagram
 
             var bisector = GetBisector(region.Site, other.Site, out var mid);
 
+            if (region.BorderExists(bisector, mid))
+                continue;
+
             region.AddBorder(bisector, mid);
         }
 
         foreach (var border in _boundsPlanes)
             region.AddBorder(border, border.normal * border.distance);
     }
+
 
     /// <summary>
     /// The plane between site1 and site2. It'll face towards site1

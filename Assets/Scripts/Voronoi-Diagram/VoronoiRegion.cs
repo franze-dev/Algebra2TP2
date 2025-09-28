@@ -31,30 +31,13 @@ public class VoronoiRegion
         {
             foreach (var border in _borders)
             {
-                if (!border.GetSide(point))
+                if (border.GetSide(point) != border.GetSide(_site))
                     return false;
             }
 
             return true;
         }
         return false;
-    }
-
-    public void RemoveExtra()
-    {
-        Vec3 point = Vec3.zero;
-        List<CustomPlane> toRemove = new List<CustomPlane>();
-
-        foreach (var border in _borders)
-        {
-            point = border.normal * border.distance;
-
-            if (!InAtLeastOneSide(point))
-                toRemove.Add(border);
-        }
-
-        foreach (var border in toRemove)
-            _borders.Remove(border);
     }
 
     public bool ShouldAdd(CustomPlane plane, Vec3 mid)
@@ -93,29 +76,10 @@ public class VoronoiRegion
         return false;
     }
 
-    public bool InAtLeastOneSide(Vec3 point)
-    {
-        if (_bounds.Contains((Vector3)point))
-        {
-            foreach (var border in _borders)
-            {
-                if (((border.normal * border.distance) - point).magnitude < Mathf.Epsilon)
-
-                if (border.GetSide(point))
-                    return true;
-            }
-
-            return false;
-        }
-        return false;
-    }
     public void AddBorder(CustomPlane border, Vec3 mid)
     {
         if (ShouldAdd(border, mid))
-        {
             _borders.Add(border);
-            RemoveExtra();
-        }
     }
 
     public override string ToString()
@@ -126,5 +90,18 @@ public class VoronoiRegion
         res += " Borders amount: " + _borders.Count;
 
         return res;
+    }
+
+    public bool BorderExists(CustomPlane bisector, Vec3 point)
+    {
+        foreach (var border in _borders)
+        {
+            var borderPoint = border.normal * border.distance;
+
+            if (_borders.Contains(bisector) || Vec3.Distance(borderPoint, point) < Mathf.Epsilon)
+                return true;
+        }
+
+        return false;
     }
 }
