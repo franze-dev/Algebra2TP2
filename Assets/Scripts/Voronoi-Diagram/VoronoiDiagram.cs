@@ -67,9 +67,6 @@ public class VoronoiDiagram
 
         var plane = new CustomPlane(normal, mid);
 
-        if (!plane.GetSide(site1))
-            plane = plane.flipped;
-
         return plane;
     }
 

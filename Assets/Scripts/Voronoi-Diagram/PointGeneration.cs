@@ -22,7 +22,7 @@ public class PointGeneration : MonoBehaviour
 
     [SerializeField] private Vec3 _testPoint;
     [SerializeField] private Vec3 _closestSite;
-    private List<Vec3> _sites;
+    [SerializeField] private List<Vec3> _sites;
 
     private void Start()
     {
@@ -33,9 +33,10 @@ public class PointGeneration : MonoBehaviour
         _sites = new List<Vec3>();
 
         GeneratePoints();
-        SortPoints();
 
         _diagram = new(_points, _min, _max);
+
+        DebugRegions();
 
         CheckRegions();
     }
@@ -75,6 +76,12 @@ public class PointGeneration : MonoBehaviour
         CheckRegions();
     }
 
+    private void DebugRegions()
+    {
+        foreach (var region in _diagram.Regions)
+            Debug.Log("REGION: " + region.ToString());
+    }
+
     private void OnDrawGizmos()
     {
         if (_diagram == null)
@@ -102,19 +109,6 @@ public class PointGeneration : MonoBehaviour
         Gizmos.DrawSphere(_testPoint, 3f);
         Gizmos.color = Color.cyan;
         Gizmos.DrawSphere(_closestSite, 3f);
-    }
-
-    /// <summary>
-    /// Sorts points from closest to furthest from the max point.
-    /// </summary>
-    private void SortPoints()
-    {
-        _points.Sort((a, b) =>
-        {
-            float distA = Vec3.Distance(a, _max);
-            float distB = Vec3.Distance(b, _max);
-            return distA.CompareTo(distB);
-        });
     }
 
     private void GeneratePoints()
