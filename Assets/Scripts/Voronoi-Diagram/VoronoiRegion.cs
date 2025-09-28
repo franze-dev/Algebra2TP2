@@ -67,7 +67,7 @@ public class VoronoiRegion
             var dot = Vec3.Dot(plane.normal, border.normal);
 
             // Are planes parallel? If they are, do not count it
-            if (Mathf.Abs(dot) > 0.999f)
+            if (Mathf.Abs(dot) == 1)
                 continue;
 
             return true;

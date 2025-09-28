@@ -258,10 +258,7 @@ namespace CustomMath
 
         /// <summary>
         /// The euclidean dot product of two vectors. It is the product of the magnitudes of the two vectors and the cosine of the angle between them.
-        /// Returns a positive value if the angle between the vectors is less than 90 degrees, 
-        /// negative if it's greater than 90 degrees, 
-        /// and zero if the vectors are orthogonal (perpendicular).
-        /// Returns 1 if the vectors are parallel.
+        /// Returns 1 if the vectors are parallel and 0 if they're orthogonal.
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
