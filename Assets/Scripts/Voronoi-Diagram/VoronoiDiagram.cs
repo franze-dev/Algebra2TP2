@@ -49,7 +49,7 @@ public class VoronoiDiagram
         }
 
         foreach (var border in _boundsPlanes)
-            region.AddBorder(border, border.normal * border.distance);
+            region.AddBorder(border, border.AnyPointOnPlane());
     }
 
 
