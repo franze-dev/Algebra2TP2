@@ -1,5 +1,6 @@
 using CustomMath;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class VoronoiRegion
@@ -22,7 +23,6 @@ public class VoronoiRegion
         _bounds = bounds;
 
         _site = site;
-
     }
 
     public bool GetSide(Vec3 point)
@@ -40,6 +40,23 @@ public class VoronoiRegion
         return false;
     }
 
+    public void RemoveExtra()
+    {
+        Vec3 point = Vec3.zero;
+        List<CustomPlane> toRemove = new List<CustomPlane>();
+
+        foreach (var border in _borders)
+        {
+            point = border.normal * border.distance;
+
+            if (!InAtLeastOneSide(point))
+                toRemove.Add(border);
+        }
+
+        foreach (var border in toRemove)
+            _borders.Remove(border);
+    }
+
     public bool ShouldAdd(CustomPlane plane, Vec3 mid)
     {
         if (!plane.GetSide(_site))
@@ -49,12 +66,7 @@ public class VoronoiRegion
         }
 
         if (_borders.Count == 0)
-        {
             return true;
-        }
-
-        if (!GetSide(mid))
-            return false;
 
         return Intersect(plane);
     }
@@ -81,10 +93,29 @@ public class VoronoiRegion
         return false;
     }
 
+    public bool InAtLeastOneSide(Vec3 point)
+    {
+        if (_bounds.Contains((Vector3)point))
+        {
+            foreach (var border in _borders)
+            {
+                if (((border.normal * border.distance) - point).magnitude < Mathf.Epsilon)
+
+                if (border.GetSide(point))
+                    return true;
+            }
+
+            return false;
+        }
+        return false;
+    }
     public void AddBorder(CustomPlane border, Vec3 mid)
     {
         if (ShouldAdd(border, mid))
+        {
             _borders.Add(border);
+            RemoveExtra();
+        }
     }
 
     public override string ToString()

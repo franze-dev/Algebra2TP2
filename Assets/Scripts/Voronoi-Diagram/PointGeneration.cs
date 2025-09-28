@@ -82,12 +82,6 @@ public class PointGeneration : MonoBehaviour
         foreach (var region in _diagram.Regions)
         {
             Debug.Log("REGION: " + region.ToString());
-
-            foreach (var border in region.Borders)
-            {
-                Debug.Log("Pos: " + border.normal * border.distance);
-                Debug.Log("Normal: " + border.normal);
-            }
         }
     }
 
