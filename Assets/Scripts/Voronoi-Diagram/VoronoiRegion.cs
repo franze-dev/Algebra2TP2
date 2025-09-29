@@ -14,8 +14,7 @@ public class VoronoiRegion
 
     public Color Color;
     public List<Vec3> _sortedPoints;
-    private float lastDist = 0f;
-    private bool keepChecking = true;
+
     public VoronoiRegion(Bounds bounds, Vec3 site, List<Vec3> points)
     {
         Color = new(Random.value, Random.value, Random.value);
