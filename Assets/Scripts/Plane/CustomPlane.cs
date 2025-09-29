@@ -4,8 +4,14 @@ namespace CustomMath
 {
     public class CustomPlane
     {
+        /// <summary>
+        /// Direction to the "positive" side of the plane
+        /// </summary>
         private Vec3 _normal;
 
+        /// <summary>
+        /// Distance from 0, 0, 0 to the plane
+        /// </summary>
         private float _distance;
 
         public Vec3 normal

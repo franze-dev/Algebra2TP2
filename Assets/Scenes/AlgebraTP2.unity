@@ -658,7 +658,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea1cb0874908c13499ef239667810665, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pointsAmount: 100
+  _pointsAmount: 150
   _maxT: {fileID: 1437673154}
   _minT: {fileID: 629385300}
   _testPoint:
@@ -669,7 +669,6 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
-  _sites: []
 --- !u!1001 &2068448060
 PrefabInstance:
   m_ObjectHideFlags: 0

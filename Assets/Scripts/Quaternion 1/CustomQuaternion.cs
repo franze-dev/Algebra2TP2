@@ -10,8 +10,6 @@ namespace CustomMath
         public float z;
         public float w;
 
-        Transform t;
-
         private static readonly CustomQuaternion _identity = new(0f, 0f, 0f, 1f);
 
         public static CustomQuaternion Identity => _identity;

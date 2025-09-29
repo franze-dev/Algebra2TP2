@@ -13,8 +13,10 @@ public class VoronoiRegion
     public List<CustomPlane> Borders => _borders;
 
     public Color Color;
-
-    public VoronoiRegion(Bounds bounds, Vec3 site)
+    public List<Vec3> _sortedPoints;
+    private float lastDist = 0f;
+    private bool keepChecking = true;
+    public VoronoiRegion(Bounds bounds, Vec3 site, List<Vec3> points)
     {
         Color = new(Random.value, Random.value, Random.value);
 
@@ -23,6 +25,19 @@ public class VoronoiRegion
         _bounds = bounds;
 
         _site = site;
+        this._sortedPoints = points;
+
+        SortPoints();
+    }
+
+    private void SortPoints()
+    {
+        _sortedPoints.Sort((a, b) =>
+        {
+            float distA = Vec3.Distance(a, _site);
+            float distB = Vec3.Distance(b, _site);
+            return distA.CompareTo(distB);
+        });
     }
 
     public bool GetSide(Vec3 point)
@@ -103,5 +118,29 @@ public class VoronoiRegion
         }
 
         return false;
+    }
+
+    internal void Build()
+    {
+        foreach (var other in _sortedPoints)
+        {
+            if (_site == other)
+                continue;
+
+            var bisector = GetBisector(_site, other, out var mid);
+
+            AddBorder(bisector, mid);
+        }
+    }
+
+    private CustomPlane GetBisector(Vec3 site1, Vec3 site2, out Vec3 mid)
+    {
+        mid = (site1 + site2) * 0.5f;
+
+        var normal = (site1 - site2).normalized;
+
+        var plane = new CustomPlane(normal, mid);
+
+        return plane;
     }
 }

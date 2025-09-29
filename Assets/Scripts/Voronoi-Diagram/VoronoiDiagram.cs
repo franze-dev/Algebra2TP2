@@ -12,12 +12,18 @@ public class VoronoiDiagram
     public List<VoronoiRegion> Regions => _regions;
 
     public List<CustomPlane> BoundsPlanes => _boundsPlanes;
+    private List<Vec3> points;
 
     public VoronoiDiagram(List<Vec3> sites, Vec3 minPoint, Vec3 maxPoint)
     {
         _bounds = new Bounds((minPoint + maxPoint) / 2, maxPoint - minPoint);
 
         _regions = new List<VoronoiRegion>();
+
+        points = new List<Vec3>();
+
+        for (int i = 0; i < sites.Count; i++)
+            points.Add(sites[i]);
 
         foreach (var site in sites)
             AddSite(site);
@@ -30,7 +36,11 @@ public class VoronoiDiagram
     private void BuildRegions()
     {
         foreach (var region in _regions)
-            BuildRegionFor(region);
+        {
+            region.Build();
+            foreach (var planes in _boundsPlanes)
+                region.Borders.Add(planes);
+        }
     }
 
     private void BuildRegionFor(VoronoiRegion region)
@@ -75,7 +85,7 @@ public class VoronoiDiagram
         if (!_bounds.Contains(site) && site != _bounds.max && site != _bounds.min)
             return;
 
-        var region = new VoronoiRegion(_bounds, site);
+        var region = new VoronoiRegion(_bounds, site, points);
 
         _regions.Add(region);
     }
